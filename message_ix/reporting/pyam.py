@@ -3,6 +3,7 @@ from logging import getLogger
 import pandas as pd
 from pyam import IAMC_IDX, IamDataFrame
 
+import xarray as xr
 
 log = getLogger(__name__)
 
@@ -19,10 +20,11 @@ def as_pyam(scenario, year_time_dim, *quantities, drop=[], collapse=None):
     # Convert each of *quantities* individually
     dfs = []
     for qty in quantities:
-        df = qty.to_series() \
-                .rename('value') \
-                .reset_index() \
-                .rename(columns=IAMC_columns)
+        df = qty.to_series() if isinstance(qty, xr.DataArray) else qty
+        df = df \
+            .rename('value') \
+            .reset_index() \
+            .rename(columns=IAMC_columns)
         df['variable'] = qty.name
         df['unit'] = qty.attrs.get('unit', '')
 
